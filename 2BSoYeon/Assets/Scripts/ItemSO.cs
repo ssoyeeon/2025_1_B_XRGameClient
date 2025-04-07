@@ -25,4 +25,5 @@ public class ItemSO : ScriptableObject
     public string DisplayName
     {
         get { return string.IsNullOrEmpty(nameEng) ? itemName : nameEng; }
+    }
 }

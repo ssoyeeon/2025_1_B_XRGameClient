@@ -9,12 +9,12 @@ public class ItemDatabaseSO : ScriptableObject
 
     //캐싱을 위한 사전 찾기
     private Dictionary<int, ItemSO> itemsByld;      //Id로 아이템을 찾기 위한 캐싱
-    private DIctionary<string, ItemSO> itemsByName;
+    private Dictionary<string, ItemSO> itemsByName;
 
     public void Initaialize()
     {
         itemsByld = new Dictionary<int, ItemSO>();
-        itemsByName = new DIctionary<string, ItemSO>();
+        itemsByName = new Dictionary<string, ItemSO>();
 
         foreach ( var item in items )
         {
@@ -31,16 +31,16 @@ public class ItemDatabaseSO : ScriptableObject
         {
             Initaialize();
         }
-        if (itemsByld.TryGetValue(idm, out ItemSo item))    //id 값을 통해서 itemSO를 찾아서 리턴 한다.
+        if (itemsByld.TryGetValue(id, out ItemSO item))    //id 값을 통해서 itemSO를 찾아서 리턴 한다.
             return item;
 
         return null;        //없으면 Null
     }
 
-    public ItemSo GetItemByName(string name)
+    public ItemSO GetItemByName(string name)
     {
         if (itemsByName == null) { Initaialize(); }
-        if (itemsByName.TryGetValue(name, out ItemSO item)
+        if (itemsByName.TryGetValue(name, out ItemSO item))
             return item;   
 
         return null;
@@ -48,6 +48,6 @@ public class ItemDatabaseSO : ScriptableObject
 
     public List<ItemSO> GetItemByType(ItemType type)
     {
-        return items.FindAll(items =>  items.Type == type);
+        return items.FindAll(items =>  items.itemType == type);
     }
 }
