@@ -157,9 +157,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 72ca02404837a4442a7ed1332563ff86, type: 2}
   - {fileID: 11400000, guid: 4bfe05222b971eb42ac700bce38824dc, type: 2}
   - {fileID: 11400000, guid: 1352774bd2e3f7548b651f438286ae0d, type: 2}
-  - {fileID: 11400000, guid: 9a4d79c6127578d47a7afcc6cff1a488, type: 2}
+  - {fileID: 11400000, guid: 70ece18b550a9644b8cda6c35013a835, type: 2}
   - {fileID: 11400000, guid: 72ca02404837a4442a7ed1332563ff86, type: 2}
-  - {fileID: 11400000, guid: 4bfe05222b971eb42ac700bce38824dc, type: 2}
+  - {fileID: 11400000, guid: 9a4d79c6127578d47a7afcc6cff1a488, type: 2}
   - {fileID: 11400000, guid: 1352774bd2e3f7548b651f438286ae0d, type: 2}
   - {fileID: 11400000, guid: 9a4d79c6127578d47a7afcc6cff1a488, type: 2}
   - {fileID: 11400000, guid: 72ca02404837a4442a7ed1332563ff86, type: 2}
@@ -507,9 +507,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: E
   maxHealth: 100
+  maxMana: 100
   currentHealth: 100
+  currentMana: 0
   healthBar: {fileID: 0}
+  manaBar: {fileID: 0}
   healthText: {fileID: 0}
+  manaText: {fileID: 0}
 --- !u!136 &671881901
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -632,9 +636,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: P
   maxHealth: 100
+  maxMana: 100
   currentHealth: 100
+  currentMana: 100
   healthBar: {fileID: 0}
+  manaBar: {fileID: 0}
   healthText: {fileID: 0}
+  manaText: {fileID: 0}
 --- !u!136 &1137267351
 CapsuleCollider:
   m_ObjectHideFlags: 0

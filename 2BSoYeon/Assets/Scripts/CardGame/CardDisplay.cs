@@ -51,6 +51,11 @@ public class CardDisplay : MonoBehaviour
             Material cardMaterial = cardRenderer.material;
             cardMaterial.mainTexture = data.artwork.texture;
         }
+
+        if(descriptionText != null)
+        {
+            descriptionText.text = data.description + data.GetAdditionalEffectsDescription();
+        }
     }
 
     private void OnMouseDown()
@@ -73,92 +78,207 @@ public class CardDisplay : MonoBehaviour
 
     private void OnMouseUp()
     {
+        isDragging = false;
 
-        CaracterStats playerStats = FindObjectOfType<CaracterStats>();
-        if(playerStats != null || playerStats.currentMana < cardData.manaCost)      //마나 검사
+        if(cardManager != null)
         {
-            Debug.Log($"마나가 부족해요 n.n (필요 : {cardData.manaCost}, 현재 : {playerStats?.currentMana ?? 0})");
+            float distToDiscard = Vector3.Distance(transform.position, cardManager.discardPosition.position);
+            if (distToDiscard < 2.0f)
+            {
+                cardManager.DiscardCard(cardIndex);
+                return;
+            }
+        }
+
+        CharacterStats playerStats = null;
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if(playerObj != null)
+        {
+            playerStats = playerObj.GetComponent<CharacterStats>();
+        }
+        if (playerStats == null || playerStats.currentMana < cardData.manaCost)
+        {
+            Debug.Log($"마나가 부족합니다! (필요 : {cardData.manaCost}, 현재 : {playerStats?.currentMana ?? 0}");
             transform.position = originalPosition;
             return;
         }
 
-        isDragging = false;
-
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-        //카드ㅜ 사용 판정 지역 변수
         bool cardUsed = false;
 
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, enemyLayer))
+        if(Physics.Raycast(ray, out hit, Mathf.Infinity, enemyLayer))
         {
-            CaracterStats enemyStats = hit.collider.GetComponent<CaracterStats>();
+            CharacterStats enemyStats = hit.collider.GetComponent<CharacterStats>();
+
             if(enemyStats != null)
             {
                 if(cardData.cardType == CardData.CardType.Attack)
                 {
                     enemyStats.TakeDamage(cardData.effectAmount);
-                    Debug.Log($"{cardData.cardName} 카드로 적에게 {cardData.effectAmount} 대미지를 입혔습니다");
+                    Debug.Log($"{cardData.cardName} 카드로 적에게 {cardData.effectAmount} 데미지를 입혔습니다.");
                     cardUsed = true;
                 }
-                else
-                {
-                    Debug.Log("이 카드는 적에게 사용할 수 없습니다.");
-                }
+            }
+            else
+            {
+                Debug.Log("이 카드는 적에게 사용할 수 없습니다.");
             }
         }
         else if(Physics.Raycast(ray, out hit, Mathf.Infinity, playerLayer))
         {
-            //플렐이어에게 힐 효과 적용
-            //CaracterStats playerStats = hit.collider.GetComponent<CaracterStats>();
-
-            if (playerStats != null)
+            if(playerStats != null)
             {
-                if(cardData.cardType == CardData.CardType.Heal)
+                if (cardData.cardType == CardData.CardType.Heal)
                 {
                     playerStats.Heal(cardData.effectAmount);
-                    Debug.Log($"{cardData.cardName} 카드로 플레이어의 체력을 {cardData.effectAmount} 회복했습니다");
+                    Debug.Log($"{cardData.cardName} 카드로 플레이어의 체력을 {cardData.effectAmount} 회복했습니다.");
                     cardUsed = true;
                 }
-                else
-                {
-                    Debug.Log("이 카드는 적에게 사용할 수 없습니다.");
-
-                }
             }
-        }
-        else if(cardManager != null)
-        {
-            //버린 카드 더미 근처에 드롭했는지 검사
-            float disToDiscard = Vector3.Distance(transform.position, cardManager.discardPosition.position);
-            if(disToDiscard < 2.0f)
+            else
             {
-                //카드를 버리기
-                cardManager.DiscardCard(cardIndex);
-                return;
-
+                Debug.Log("이 카드는 플레이어에게 사용 할 수 없습니다.");
             }
-
         }
 
-
-        //카드를 사용하지 않았다면 원래 위치로 되돌리기
-        if (!cardUsed)
+        if(!cardUsed)
         {
             transform.position = originalPosition;
-            //손패 재정렬 (필요한 경우)
-            cardManager.ArrangeHand();
+            if (cardManager != null)
+                cardManager.ArrangeHand();
+            return;
+        }
+
+        playerStats.UseMana(cardData.manaCost);
+        Debug.Log($"마나를 {cardData.manaCost} 사용 했습니다. (남은 마나 : {playerStats.currentMana}");
+
+        if(cardData.additionalEffects != null && cardData.additionalEffects.Count > 0)
+        {
+            ProcessAdditionalEffectsAndDiscard();
         }
         else
         {
-            //카드를 사용했다면 버린 카드 더미로 이동
             if (cardManager != null)
                 cardManager.DiscardCard(cardIndex);
-
-            //카드 사용 시 마나 소모(카드가 성공적으로 사용된 후 추가)
-            playerStats.UseMana(cardData.manaCost);
-            Debug.Log($"마나를 {cardData.manaCost} 사용 했습니다. (남은 마나 : {playerStats.currentMana})");
-
         }
+    }
+    
+    private void ProcessAdditionalEffectsAndDiscard()
+    {
+        //카드 데이터 및 인덱스 보존
+        CardData cardDataCopy = cardData;
+        int cardIndexCopy = cardIndex;
+
+        //추가 효과 적용
+        foreach(var effect in cardDataCopy.additionalEffects)
+        {
+            switch(effect.effectType)
+            {
+                case CardData.AdditionalEffectType.DrawCard:
+                    for(int i = 0; i < effect.effectAmount; i++)
+                    {
+                        if(cardManager != null)
+                        {
+                            cardManager.DrawCard();
+                        }
+
+                    }
+                    Debug.Log($"{effect.effectAmount} 장의 카드를 드로우 했습니다.");
+                    break;
+
+                case CardData.AdditionalEffectType.DiscardCard:     //카드 버리기 구현 (랜덤 버리기)
+                    for(int i = 0; i < effect.effectAmount; i++)
+                    {
+                        if(cardManager != null && cardManager.handCards.Count > 0)
+                        {
+                            int randomindex = Random.Range(0,cardManager.handCards.Count);      //손패 크기 기준으로 랜덤 인덱스 생성
+
+                            Debug.Log($"랜덤 카드 버리기 : 선택된 인덱스 {randomindex}, 현재 손패 크기 : {cardManager.handCards.Count}");
+
+                            if(cardIndexCopy < cardManager.handCards.Count)
+                            {
+                                if(randomindex != cardIndexCopy)
+                                {
+                                    cardManager.DiscardCard(randomindex);
+
+                                    //만약 버린 카드의 인덱스가 현재 카드의 인덱스보다 작다면 현재 카드의 인덱스를 1 감소 시켜야 함
+                                    if(randomindex < cardIndexCopy)
+                                    {
+                                        cardIndexCopy--;
+                                    }
+                                }
+                                else if(cardManager.handCards.Count > 1)
+                                {
+                                    //다른 카드 선택
+                                    int newIndex = (randomindex + 1)% cardManager.handCards.Count;
+                                    cardManager.DiscardCard(newIndex);
+
+                                    if (randomindex < cardIndexCopy)
+                                    {
+                                        cardIndexCopy--;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //cardIndexCpoy가 더 이상 유효하지 않은 경우, 아무 카드나 버림
+                                cardManager.DiscardCard(randomindex);
+                            }
+                        }
+                    }
+                    Debug.Log($"랜덤으로 {effect.effectAmount}장의 카드를 버렸습니다.");
+                    break;
+
+                case CardData.AdditionalEffectType.GainMana:
+                    GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+                    if(playerObj != null)
+                    {
+                        CharacterStats playerStats = playerObj.GetComponent<CharacterStats>();
+                        if (playerStats != null)
+                        {
+                            playerStats.GainMana(effect.effectAmount);
+                            Debug.Log($"마나를 {effect.effectAmount} 획득 했습니다! (현재 마나 : {playerStats.currentMana})");
+                        }
+                    }
+                    break;
+
+                case CardData.AdditionalEffectType.ReduceEnemyMana:
+                    GameObject[] enemies = GameObject.FindGameObjectsWithTag("Ebentg");
+                    foreach(var enemy in enemies)
+                    {
+                        CharacterStats enemyStats = enemy.GetComponent<CharacterStats>();
+                        if (enemyStats != null)
+                        {
+                            enemyStats.GainMana(effect.effectAmount);
+                            Debug.Log($"마나를 {effect.effectAmount} 의 마나를 (현재 마나 : {effect.effectAmount} 감소 시켰습니다.)");
+                        }
+                    }
+                    break;
+
+                case CardData.AdditionalEffectType.ReduceCardCost:
+                    for (int i = 0; i < cardManager.cardObjects.Count; i++)
+                    {
+                        CardDisplay display = cardManager.cardObjects[i].GetComponent<CardDisplay>();
+                        if(display != null && display != this)
+                        {
+                            TextMeshPro costText = display.costText;
+                            if(costText != null )
+                            {
+                                int originalCost = display.cardData.manaCost;
+                                int newCost = Mathf.Max(0, originalCost - effect.effectAmount);
+                                costText.text = newCost.ToString();
+                                costText.color = Color.green; 
+                            }
+                        }
+                    }   //다음 카드 비용 감소 효과 시각적으로만.
+                    break;
+
+            }
+        }
+
+        if(cardManager != null)
+            cardManager.DiscardCard(cardIndexCopy);
     }
 }

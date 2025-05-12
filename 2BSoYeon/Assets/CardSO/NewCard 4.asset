@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff1ca7072a3aff34a9a3e4c407ffb799, type: 3}
-  m_Name: NewCard
+  m_Name: NewCard 4
   m_EditorClassIdentifier: 
-  cardName: "\uB180\uB77C\uC6B4 \uD654\uC0B4"
-  description: "\uD654\uC0B4\uC774 \uB180\uB77C\uC694!"
-  artwork: {fileID: 21300000, guid: 530bcabb1501d8148a19a77465ecac03, type: 3}
+  cardName: "\uC870\uD754 \uB51C"
+  description: "\uC790\uAC00 \uCE58\uB8CC"
+  artwork: {fileID: 21300000, guid: c3aab7237df394c4890e647a4ae580ea, type: 3}
   manaCost: 1
-  effectAmount: 5
+  effectAmount: 2
   cardType: 0

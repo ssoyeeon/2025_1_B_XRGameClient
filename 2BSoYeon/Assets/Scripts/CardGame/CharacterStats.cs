@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using Newtonsoft.Json;
 
-public class CaracterStats : MonoBehaviour
+public class CharacterStats : MonoBehaviour
 {
     public string characterName;
     public int maxHealth = 100;
