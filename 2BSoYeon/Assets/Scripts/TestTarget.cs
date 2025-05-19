@@ -32,7 +32,7 @@ public class TestTarget : MonoBehaviour
             DamageEffectManager.instance.ShowHeal(position, amount, isCritical);
         }
     }
-    private void ShowMiss(int amount, bool isCritical)
+    private void ShowMiss()
     {
         if (DamageEffectManager.instance != null)
         {
@@ -41,13 +41,13 @@ public class TestTarget : MonoBehaviour
             DamageEffectManager.instance.ShowMiss(position);
         }
     }
-    private void ShowDamage(int amount, bool isCritical)
+    private void ShowStatusEffect(string effectName)
     {
         if (DamageEffectManager.instance != null)
         {
             Vector3 position = transform.position;
             position += new Vector3(Random.Range(-0.5f, 0.5f), Random.Range(1f, 1.5f), 0);
-            DamageEffectManager.instance.ShowMiss(position);
+            DamageEffectManager.instance.ShowStatusEffect(position, effectName);
         }
     }
 
